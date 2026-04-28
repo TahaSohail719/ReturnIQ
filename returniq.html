@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReturnIQ — Shopify Return Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#f5f4f0;--sf:#fff;--sf2:#f0ede8;--sf3:#e8e4de;--bd:rgba(0,0,0,.07);--bd2:rgba(0,0,0,.12);--tx:#1c1917;--tx2:#6b6560;--tx3:#a8a39d;--red:#d94f3d;--amb:#e08c2a;--grn:#5a8f2c;--blu:#2e6fb5;--pur:#7c3aed;--rad:10px;}
+*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);font-size:13px}
+.mn{font-family:'DM Mono',monospace}
+.app{display:flex;height:100vh}
+/* SIDEBAR */
+.sb{width:222px;min-width:222px;background:var(--tx);display:flex;flex-direction:column;overflow:hidden}
+.lw{padding:17px 15px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.lg{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;letter-spacing:-.5px}
+.ls{font-size:8.5px;color:rgba(255,255,255,.32);letter-spacing:1.8px;text-transform:uppercase;margin-top:2px}
+.nv{flex:1;padding:8px;overflow-y:auto}
+.ns{font-size:7.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);padding:12px 10px 5px}
+.ni{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);transition:all .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
+.ni:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9)}
+.ni.on{background:rgba(255,255,255,.12);color:#fff;font-weight:500}
+.ni.c-on{background:var(--red)!important;color:#fff!important}
+.ni.a-on{background:var(--amb)!important;color:#fff!important}
+.nsv{width:14px;height:14px;flex-shrink:0;opacity:.65}
+.nb{margin-left:auto;font-size:9px;padding:1px 5px;border-radius:20px;font-family:'DM Mono',monospace}
+.nb-r{background:var(--red);color:#fff}.nb-a{background:var(--amb);color:#fff}.nb-g{background:var(--grn);color:#fff}
+.sf{padding:10px 13px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.sd{display:inline-block;width:6px;height:6px;border-radius:50%;background:#5a8f2c;margin-right:4px;animation:bl 2s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+/* MAIN */
+.mn-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.tb{background:var(--sf);border-bottom:1px solid var(--bd2);height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.sp{display:flex;align-items:center;gap:6px;background:var(--sf2);padding:5px 11px;border-radius:20px;font-size:11px;color:var(--tx2);border:1px solid var(--bd2)}
+.ct{flex:1;overflow-y:auto;padding:20px 22px}
+/* PAGES */
+.pg{display:none}.pg.on{display:block}
+.pt{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;letter-spacing:-.3px;margin-bottom:2px}
+.ps{font-size:11.5px;color:var(--tx2);margin-bottom:16px}
+/* KPI */
+.kg{display:grid;gap:10px;margin-bottom:16px}
+.k4{grid-template-columns:repeat(4,1fr)}.k3{grid-template-columns:repeat(3,1fr)}.k5{grid-template-columns:repeat(5,1fr)}.k2{grid-template-columns:repeat(2,1fr)}
+.kp{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--rad);padding:13px 15px;position:relative;overflow:hidden}
+.kl{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--tx3);margin-bottom:6px}
+.kv{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.kd{font-size:10px;margin-top:4px;font-weight:500}
+.db{color:var(--red)}.dg{color:var(--grn)}
+.kb{position:absolute;bottom:0;left:0;right:0;height:2.5px}
+.br{background:var(--red)}.ba{background:var(--amb)}.bg{background:var(--grn)}.bb{background:var(--blu)}.bp{background:var(--pur)}
+.vr{color:var(--red)}.va{color:var(--amb)}.vg{color:var(--grn)}
+/* CARDS */
+.cd{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--rad);padding:14px}
+.ch{font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700;margin-bottom:2px}
+.cs{font-size:10.5px;color:var(--tx3);margin-bottom:10px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+/* FIXED HEIGHT CHART WRAPPERS */
+.cw{position:relative;width:100%}
+.cw canvas{position:absolute!important;top:0;left:0;width:100%!important;height:100%!important}
+.h90{height:90px}.h110{height:110px}.h130{height:130px}.h150{height:150px}.h170{height:170px}.h200{height:200px}
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tx3);text-align:left;padding:5px 7px;border-bottom:1px solid var(--bd)}
+.tbl td{font-size:11px;padding:7px 7px;border-bottom:1px solid var(--bd)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--sf2)}
+/* BADGES */
+.bg-h{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:9.5px;font-weight:700;background:#fde8e6;color:#9b2c1f;border:1px solid #f5c5c0}
+.bg-m{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:9.5px;font-weight:700;background:#fef3df;color:#915e10;border:1px solid #f9dfa0}
+.bg-l{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:9.5px;font-weight:700;background:#e8f4dc;color:#2d5c0e;border:1px solid #bfe09a}
+.bg-b{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:9.5px;font-weight:700;background:#dbeafe;color:#1a4e8a;border:1px solid #b3d0f5}
+.rp{display:inline-block;padding:2px 7px;border-radius:20px;font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700}
+.rh{background:#fde8e6;color:#9b2c1f}.rm{background:#fef3df;color:#915e10}
+.rl{background:#e8f4dc;color:#2d5c0e}.rb{background:#dbeafe;color:#1a4e8a}
+/* BARS */
+.br-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.br-l{font-size:11px;color:var(--tx2);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.br-t{flex:1;background:var(--sf2);border-radius:4px;height:6px;overflow:hidden}
+.br-f{height:6px;border-radius:4px}
+.br-v{font-size:10px;font-family:'DM Mono',monospace;color:var(--tx3);width:38px;text-align:right;flex-shrink:0}
+/* ALERTS */
+.al{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--bd)}.al:last-child{border-bottom:none}
+.ad{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.at{font-size:11px;color:var(--tx2);line-height:1.4}
+.am{font-size:9.5px;color:var(--tx3);margin-top:1px;font-family:'DM Mono',monospace}
+/* FUNNEL */
+.fs{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.fi{font-size:9px;color:var(--tx3);width:12px;text-align:center}
+.fb{flex:1}.fm{display:flex;justify-content:space-between;margin-bottom:3px}
+.fn{font-size:11px}.fv{font-size:10px;font-family:'DM Mono',monospace;color:var(--tx2)}
+.ft{background:var(--sf2);border-radius:3px;height:7px;overflow:hidden}
+.ff{height:7px;border-radius:3px}
+/* SEGMENTS */
+.sg{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--bd)}.sg:last-child{border-bottom:none}
+.si{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0}
+/* TABS */
+.tab-bar{display:flex;gap:2px;background:var(--sf2);padding:3px;border-radius:9px;margin-bottom:14px;width:fit-content}
+.tab-btn{padding:5px 14px;border-radius:7px;font-size:11px;cursor:pointer;color:var(--tx2);border:none;background:none;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .15s}
+.tab-btn.on{background:var(--sf);color:var(--tx);border:1px solid var(--bd2);font-weight:700;font-family:'Syne',sans-serif}
+/* FILTER BTNS */
+.fb-btn{padding:5px 11px;border-radius:7px;font-size:11px;border:1px solid var(--bd2);background:var(--sf2);color:var(--tx2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.fb-btn:hover{background:var(--sf3)}
+.fb-btn.sel{background:var(--tx);color:#fff;border-color:var(--tx)}
+/* CONTROLS */
+.tb-sel{background:var(--sf2);border:1px solid var(--bd2);border-radius:7px;padding:5px 9px;font-size:11px;color:var(--tx2);font-family:'DM Sans',sans-serif;cursor:pointer;outline:none}
+.tb-btn2{background:var(--sf2);border:1px solid var(--bd2);border-radius:7px;padding:5px 11px;font-size:11px;color:var(--tx2);cursor:pointer;font-family:'DM Sans',sans-serif}
+input[type=text]{background:var(--sf2);border:1px solid var(--bd2);border-radius:7px;padding:5px 10px;font-size:11px;outline:none;font-family:'DM Sans',sans-serif;width:180px}
+/* RECO */
+.rc{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--rad);padding:12px;margin-bottom:9px}
+.rt{font-size:9px;font-family:'DM Mono',monospace;color:var(--tx3);background:var(--sf2);padding:2px 7px;border-radius:5px;display:inline-block;margin-bottom:6px}
+.ra{font-size:12px;font-weight:500;margin-bottom:4px}
+.ri{font-size:10.5px;color:var(--grn);font-weight:600}
+.rg{font-size:9.5px;background:var(--sf2);color:var(--tx3);padding:2px 6px;border-radius:20px}
+/* COURIER CHIP */
+.cc{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+/* HEATMAP */
+.hc{display:inline-block;padding:2px 5px;border-radius:5px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;min-width:44px;text-align:center}
+/* COURIER PERF ROW */
+.cr-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd)}.cr-row:last-child{border-bottom:none}
+/* ACTIONS PAGE */
+.ac{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--rad);padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.ac::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.ac-u::before{background:var(--red)}.ac-h::before{background:var(--amb)}
+.ac-m::before{background:var(--blu)}.ac-g::before{background:var(--grn)}
+.ac-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.ac-t{font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700}
+.ac-bdy{font-size:11px;color:var(--tx2);margin-bottom:8px;line-height:1.5}
+.ac-step{display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;font-size:11.5px}
+.ac-arr{color:var(--grn);flex-shrink:0;font-weight:700;margin-top:1px}
+.ac-ft{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--bd)}
+.ip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:700;background:#e8f4dc;color:#2d5c0e;border:1px solid #bfe09a}
+.pt-u{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;background:#fde8e6;color:#9b2c1f;border:1px solid #f5c5c0}
+.pt-h{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;background:#fef3df;color:#915e10;border:1px solid #f9dfa0}
+.pt-m{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;background:#dbeafe;color:#1a4e8a;border:1px solid #b3d0f5}
+.pt-g{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;background:#e8f4dc;color:#2d5c0e;border:1px solid #bfe09a}
+/* FORECAST */
+.fc-box{background:linear-gradient(135deg,#f0fdf4,#f5f4f0);border:1px solid #d1fae5;border-radius:var(--rad);padding:16px;margin-bottom:16px}
+.fc-num{font-family:'Syne',sans-serif;font-size:34px;font-weight:700;color:var(--grn);line-height:1}
+.fc-bar-w{background:#e8f4dc;border-radius:8px;height:18px;overflow:hidden;margin:8px 0;position:relative}
+.fc-bar-f{height:18px;background:linear-gradient(90deg,#5a8f2c,#7dbf3a);border-radius:8px;display:flex;align-items:center;padding-left:8px;transition:width 1.2s cubic-bezier(.22,.68,0,1.2)}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--sf3);border-radius:10px}
+/* SECTION LABELS */
+.sec-lbl{font-size:8.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="lw"><div class="lg">ReturnIQ</div><div class="ls">Shopify Analytics</div></div>
+  <nav class="nv">
+    <div class="ns">Return Analytics</div>
+    <button class="ni on" onclick="goto('overview',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.2" opacity=".9"/><rect x="9" y="1" width="6" height="6" rx="1.2" opacity=".5"/><rect x="1" y="9" width="6" height="6" rx="1.2" opacity=".5"/><rect x="9" y="9" width="6" height="6" rx="1.2" opacity=".9"/></svg>Overview</button>
+    <button class="ni" onclick="goto('orders',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6M5 9h4" stroke-linecap="round"/></svg>Orders</button>
+    <button class="ni" onclick="goto('customers',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="5" r="2.8" opacity=".9"/><path d="M2 14c0-3.3 2.7-5.2 6-5.2s6 1.9 6 5.2" opacity=".6"/></svg>Customers<span class="nb nb-r">3</span></button>
+    <button class="ni" onclick="goto('products',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M2 6.5h12M6.5 6.5v7.5"/></svg>Products</button>
+    <button class="ni" onclick="goto('locations',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="6.5" r="2.5"/><path d="M8 9.5s-4.5 3-4.5 5.5h9c0-2.5-4.5-5.5-4.5-5.5z" fill="currentColor" opacity=".4" stroke="none"/></svg>Locations</button>
+    <button class="ni" onclick="goto('financial',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12L5 8l3 2 4-5 2 2"/></svg>Financial</button>
+    <button class="ni" onclick="goto('recommendations',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5.5v3.5" stroke-linecap="round"/><circle cx="8" cy="11.2" r=".7" fill="currentColor"/></svg>Insights</button>
+    <div class="ns" style="padding-top:16px">Courier Intelligence</div>
+    <button class="ni" id="nav-cour" onclick="goto('couriers',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="10" height="8" rx="1"/><path d="M11 7h2l2 3v3h-4V7z"/><circle cx="4" cy="14" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg>
+      Courier Analytics<span class="nb nb-a">!</span></button>
+    <div class="ns" style="padding-top:16px">Action Centre</div>
+    <button class="ni" id="nav-act" onclick="goto('actions',this)">
+      <svg class="nsv" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+      Actions Today<span class="nb nb-r">9</span></button>
+  </nav>
+  <div class="sf">
+    <div style="font-size:9.5px;color:rgba(255,255,255,.3);margin-bottom:2px">Shopify Store</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.6)"><span class="sd"></span>zarafashion.myshopify.com</div>
+    <div style="font-size:8.5px;color:rgba(255,255,255,.25);margin-top:5px">DEMO DATA · synced 2 min ago</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="mn-wrap">
+  <div class="tb">
+    <div class="sp"><div style="width:7px;height:7px;border-radius:50%;background:#5a8f2c"></div>zarafashion.myshopify.com</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="tb-sel"><option>Last 30 days</option><option>Last 7 days</option><option>Last 90 days</option></select>
+      <button class="tb-btn2">↻ Sync</button>
+    </div>
+  </div>
+  <div class="ct">
+<!-- ═══ OVERVIEW ═══ -->
+<div id="pg-overview" class="pg on">
+  <div class="pt">Dashboard</div><div class="ps">Return analytics · last 30 days · Demo data</div>
+  <div class="kg k4">
+    <div class="kp"><div class="kl">Total Orders</div><div class="kv">3,842</div><div class="kd dg">▲ 12% vs prev</div><div class="kb bb"></div></div>
+    <div class="kp"><div class="kl">Return Rate</div><div class="kv vr">24.6%</div><div class="kd db">▲ 3.1% increase</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Revenue Lost</div><div class="kv va">₨1.2M</div><div class="kd db">▲ 8% vs prev</div><div class="kb ba"></div></div>
+    <div class="kp"><div class="kl">COD Return Rate</div><div class="kv va">38.2%</div><div class="kd db">▲ 5% increase</div><div class="kb ba"></div></div>
+  </div>
+  <div class="g2">
+    <div class="cd"><div class="ch">Returns over time</div><div class="cs">Daily return rate % — 30 days</div><div class="cw h150"><canvas id="trendChart"></canvas></div></div>
+    <div class="cd"><div class="ch">Active Alerts</div><div class="cs">Requires attention</div>
+      <div class="al"><div class="ad" style="background:var(--red)"></div><div><div class="at">Return spike in <strong>Karachi</strong> — up 14% this week</div><div class="am">Today 09:41</div></div></div>
+      <div class="al"><div class="ad" style="background:var(--red)"></div><div><div class="at"><strong>Embroidered Kameez (M)</strong> return rate hit 52%</div><div class="am">Today 08:12</div></div></div>
+      <div class="al"><div class="ad" style="background:var(--amb)"></div><div><div class="at">High-risk customer: <strong>Ayesha Farooq</strong></div><div class="am">Yesterday 22:05</div></div></div>
+      <div class="al"><div class="ad" style="background:var(--amb)"></div><div><div class="at">COD return rate exceeded 40% — Trax courier</div><div class="am">Yesterday 18:30</div></div></div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="cd"><div class="ch">Payment Type Split</div><div class="cw h110"><canvas id="payChart"></canvas></div>
+      <div style="display:flex;gap:12px;margin-top:6px;font-size:10px;color:var(--tx2)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:2px;background:var(--red)"></span>COD 38.2%</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:2px;background:var(--blu)"></span>Prepaid 11.4%</span>
+      </div>
+    </div>
+    <div class="cd"><div class="ch">Return Reasons</div><div class="cw h110"><canvas id="reasonChart"></canvas></div></div>
+    <div class="cd"><div class="ch">Delivery vs Returns</div>
+      <div style="margin-top:10px">
+        <div class="br-row"><div class="br-l">1–2 days</div><div class="br-t"><div class="br-f" style="width:22%;background:var(--grn)"></div></div><div class="br-v">22%</div></div>
+        <div class="br-row"><div class="br-l">3–4 days</div><div class="br-t"><div class="br-f" style="width:31%;background:var(--amb)"></div></div><div class="br-v">31%</div></div>
+        <div class="br-row"><div class="br-l">5+ days</div><div class="br-t"><div class="br-f" style="width:67%;background:var(--red)"></div></div><div class="br-v">67%</div></div>
+        <div style="margin-top:8px;padding:7px 9px;background:var(--sf2);border-radius:7px;font-size:10.5px;color:var(--tx2)">Avg: <strong class="mn">4.2 days</strong> — spikes sharply after 5+</div>
+      </div>
+    </div>
+  </div>
+  <!-- Courier Snapshot -->
+  <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:10px">Courier Performance Snapshot</div>
+  <div class="kg k5" style="margin-bottom:10px">
+    <div class="kp"><div class="kl">M&amp;P</div><div class="kv vg">8.9%</div><div class="kd dg">🥇 Best courier</div><div class="kb bg"></div></div>
+    <div class="kp"><div class="kl">PostEx</div><div class="kv" style="color:var(--pur)">16%</div><div class="kd dg">🥈 2nd best</div><div class="kb bp"></div></div>
+    <div class="kp"><div class="kl">TCS</div><div class="kv">24%</div><div class="kd">🥉 3rd place</div><div class="kb bb"></div></div>
+    <div class="kp"><div class="kl">Leopards</div><div class="kv va">29%</div><div class="kd db">4th · needs work</div><div class="kb ba"></div></div>
+    <div class="kp"><div class="kl">Trax</div><div class="kv vr">35%</div><div class="kd db">⚠ Worst courier</div><div class="kb br"></div></div>
+  </div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="cd"><div class="ch">Courier Return Rate</div><div class="cs">All 5 couriers — lower is better</div><div class="cw h130"><canvas id="courSnap"></canvas></div></div>
+    <div class="cd"><div class="ch">Best Courier Per City</div><div class="cs">Biggest gain: switch from Trax</div>
+      <div style="margin-top:4px">
+        <div class="cr-row"><div style="font-size:11px;font-weight:600;width:78px">Hyderabad</div><div style="flex:1;font-size:10px;color:var(--grn)">Best: <b>M&P 13.9%</b></div><div style="font-size:10px;color:var(--red)">Worst: Trax 47.7%</div><div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);width:42px;text-align:right">↑33.8%</div></div>
+        <div class="cr-row"><div style="font-size:11px;font-weight:600;width:78px">Karachi</div><div style="flex:1;font-size:10px;color:var(--grn)">Best: <b>M&P 11.9%</b></div><div style="font-size:10px;color:var(--red)">Worst: Trax 44%</div><div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);width:42px;text-align:right">↑32.1%</div></div>
+        <div class="cr-row"><div style="font-size:11px;font-weight:600;width:78px">Faisalabad</div><div style="flex:1;font-size:10px;color:var(--grn)">Best: <b>M&P 9.1%</b></div><div style="font-size:10px;color:var(--red)">Worst: Trax 41.1%</div><div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);width:42px;text-align:right">↑32%</div></div>
+        <div class="cr-row"><div style="font-size:11px;font-weight:600;width:78px">Lahore</div><div style="flex:1;font-size:10px;color:var(--grn)">Best: <b>M&P 6.3%</b></div><div style="font-size:10px;color:var(--red)">Worst: Trax 33.2%</div><div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);width:42px;text-align:right">↑26.9%</div></div>
+        <div class="cr-row"><div style="font-size:11px;font-weight:600;width:78px">Islamabad</div><div style="flex:1;font-size:10px;color:var(--grn)">Best: <b>M&P 3.3%</b></div><div style="font-size:10px;color:var(--red)">Worst: Trax 22.4%</div><div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);width:42px;text-align:right">↑19.1%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="cd"><div class="ch">Order Funnel</div>
+      <div style="margin-top:10px">
+        <div class="fs"><div class="fi">●</div><div class="fb"><div class="fm"><span class="fn">Placed</span><span class="fv">3,842 (100%)</span></div><div class="ft"><div class="ff" style="width:100%;background:var(--blu)"></div></div></div></div>
+        <div class="fs"><div class="fi">↓</div><div class="fb"><div class="fm"><span class="fn">Shipped</span><span class="fv">3,610 (93.9%)</span></div><div class="ft"><div class="ff" style="width:93.9%;background:var(--blu)"></div></div></div></div>
+        <div class="fs"><div class="fi">↓</div><div class="fb"><div class="fm"><span class="fn">Delivered</span><span class="fv">3,122 (81.3%)</span></div><div class="ft"><div class="ff" style="width:81.3%;background:var(--amb)"></div></div></div></div>
+        <div class="fs"><div class="fi">↓</div><div class="fb"><div class="fm"><span class="fn">Returned</span><span class="fv">945 (24.6%)</span></div><div class="ft"><div class="ff" style="width:24.6%;background:var(--red)"></div></div></div></div>
+      </div>
+    </div>
+    <div class="cd"><div class="ch">Customer Segments</div>
+      <div class="sg"><div class="si" style="background:#e8f4dc;color:#2d5c0e">LY</div><div style="flex:1"><div style="font-weight:500;font-size:11.5px">Loyal</div><div style="font-size:10px;color:var(--tx3)">Return &lt;10%, repeat buyers</div></div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500">812</div></div>
+      <div class="sg"><div class="si" style="background:#dbeafe;color:#1a4e8a">NW</div><div style="flex:1"><div style="font-weight:500;font-size:11.5px">New customers</div><div style="font-size:10px;color:var(--tx3)">First order placed</div></div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500">1,104</div></div>
+      <div class="sg"><div class="si" style="background:#fde8e6;color:#9b2c1f">HR</div><div style="flex:1"><div style="font-weight:500;font-size:11.5px">High-return</div><div style="font-size:10px;color:var(--tx3)">Return rate &gt;40%</div></div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500">187</div></div>
+      <div class="sg"><div class="si" style="background:#fef3df;color:#915e10">HV</div><div style="flex:1"><div style="font-weight:500;font-size:11.5px">High-value</div><div style="font-size:10px;color:var(--tx3)">AOV &gt; ₨5,000</div></div><div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500">294</div></div>
+    </div>
+  </div>
+</div>
+<!-- ═══ ORDERS ═══ -->
+<div id="pg-orders" class="pg">
+  <div class="pt">Order Analytics</div><div class="ps">Return breakdown with filters</div>
+  <div class="kg k3">
+    <div class="kp"><div class="kl">Returned Orders</div><div class="kv vr">945</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Avg Order Value</div><div class="kv">₨1,770</div><div class="kb bb"></div></div>
+    <div class="kp"><div class="kl">Avg Return Value</div><div class="kv va">₨1,270</div><div class="kb ba"></div></div>
+  </div>
+  <div class="g2">
+    <div class="cd"><div class="ch">Return Rate by Price Range</div>
+      <div style="margin-top:10px">
+        <div class="br-row"><div class="br-l">₨0–1,000</div><div class="br-t"><div class="br-f" style="width:18%;background:var(--grn)"></div></div><div class="br-v">18%</div></div>
+        <div class="br-row"><div class="br-l">₨1k–2,500</div><div class="br-t"><div class="br-f" style="width:26%;background:var(--amb)"></div></div><div class="br-v">26%</div></div>
+        <div class="br-row"><div class="br-l">₨2.5k–5k</div><div class="br-t"><div class="br-f" style="width:34%;background:var(--amb)"></div></div><div class="br-v">34%</div></div>
+        <div class="br-row"><div class="br-l">₨5k+</div><div class="br-t"><div class="br-f" style="width:41%;background:var(--red)"></div></div><div class="br-v">41%</div></div>
+        <div style="margin-top:8px;padding:7px;background:var(--sf2);border-radius:7px;font-size:10.5px;color:var(--tx3)">Higher-priced items have significantly higher return rates</div>
+      </div>
+    </div>
+    <div class="cd"><div class="ch">New vs Returning Customers</div>
+      <div style="margin-top:10px">
+        <div class="br-row"><div class="br-l">New customers</div><div class="br-t"><div class="br-f" style="width:38%;background:var(--red)"></div></div><div class="br-v">38%</div></div>
+        <div class="br-row"><div class="br-l">Returning</div><div class="br-t"><div class="br-f" style="width:16%;background:var(--grn)"></div></div><div class="br-v">16%</div></div>
+        <div style="margin-top:8px;padding:7px;background:var(--sf2);border-radius:7px;font-size:10.5px;color:var(--tx3)">New customers return at <strong style="color:var(--tx)">2.4×</strong> the rate</div>
+      </div>
+    </div>
+  </div>
+  <div class="cd"><div class="ch">Recent Returned Orders</div>
+    <table class="tbl" style="margin-top:10px">
+      <thead><tr><th>Order</th><th>Customer</th><th>City</th><th>Amount</th><th>Reason</th><th>Payment</th></tr></thead>
+      <tbody>
+        <tr><td class="mn">#8821</td><td>Ayesha Farooq</td><td>Karachi</td><td class="mn">₨2,400</td><td>Size issue</td><td><span class="bg-m">COD</span></td></tr>
+        <tr><td class="mn">#8819</td><td>Bilal Mahmood</td><td>Lahore</td><td class="mn">₨1,800</td><td>Change of mind</td><td><span class="bg-m">COD</span></td></tr>
+        <tr><td class="mn">#8814</td><td>Sara Khan</td><td>Rawalpindi</td><td class="mn">₨3,100</td><td>Quality issue</td><td><span class="bg-b">Prepaid</span></td></tr>
+        <tr><td class="mn">#8808</td><td>Nadia Hussain</td><td>Islamabad</td><td class="mn">₨950</td><td>Late delivery</td><td><span class="bg-m">COD</span></td></tr>
+        <tr><td class="mn">#8801</td><td>Zainab Ali</td><td>Multan</td><td class="mn">₨2,200</td><td>Size issue</td><td><span class="bg-m">COD</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ CUSTOMERS ═══ -->
+<div id="pg-customers" class="pg">
+  <div class="pt">Customer Risk Profiling</div><div class="ps">Rule-based: return rate &gt;40% + COD ratio &gt;80% + ≥3 orders = High Risk</div>
+  <div class="kg k4">
+    <div class="kp"><div class="kl">Total Customers</div><div class="kv">2,397</div><div class="kb bb"></div></div>
+    <div class="kp"><div class="kl">High Risk</div><div class="kv vr">187</div><div class="kd db">▲ 12 new this week</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Medium Risk</div><div class="kv va">341</div><div class="kb ba"></div></div>
+    <div class="kp"><div class="kl">Low Risk</div><div class="kv vg">1,869</div><div class="kb bg"></div></div>
+  </div>
+  <div class="cd">
+    <div style="display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <input type="text" id="custSearch" placeholder="Search name or city…" oninput="renderCusts()">
+      <button class="fb-btn sel" id="cf-all" onclick="filtCust('all')">All</button>
+      <button class="fb-btn" id="cf-high" onclick="filtCust('high')">High</button>
+      <button class="fb-btn" id="cf-medium" onclick="filtCust('medium')">Medium</button>
+      <button class="fb-btn" id="cf-low" onclick="filtCust('low')">Low</button>
+    </div>
+    <table class="tbl"><thead><tr><th>Customer</th><th>City</th><th>Phone</th><th>Orders</th><th>Returns</th><th>Return Rate</th><th>COD Ratio</th><th>Risk</th></tr></thead>
+    <tbody id="custBody"></tbody></table>
+  </div>
+</div>
+
+<!-- ═══ PRODUCTS ═══ -->
+<div id="pg-products" class="pg">
+  <div class="pt">Product Return Heatmap</div><div class="ps">Return rate per product — sorted by highest risk</div>
+  <div class="kg k4">
+    <div class="kp"><div class="kl">Total Products</div><div class="kv">10</div><div class="kb bb"></div></div>
+    <div class="kp"><div class="kl">High Risk (≥40%)</div><div class="kv vr">2</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Avg Return Rate</div><div class="kv va">24%</div><div class="kb ba"></div></div>
+    <div class="kp"><div class="kl">Most Returned</div><div class="kv" style="font-size:15px">Kameez (M)</div><div class="kb br"></div></div>
+  </div>
+  <div class="cd">
+    <div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap">
+      <button class="fb-btn sel" id="pf-all" onclick="filtProd('all')">All</button>
+      <button class="fb-btn" id="pf-Tops" onclick="filtProd('Tops')">Tops</button>
+      <button class="fb-btn" id="pf-Bottoms" onclick="filtProd('Bottoms')">Bottoms</button>
+      <button class="fb-btn" id="pf-Accessories" onclick="filtProd('Accessories')">Accessories</button>
+      <button class="fb-btn" id="pf-Sets" onclick="filtProd('Sets')">Sets</button>
+    </div>
+    <table class="tbl"><thead><tr><th>Product</th><th>Category</th><th>Variant</th><th>Sold</th><th>Returned</th><th>Return %</th><th>Visual</th></tr></thead>
+    <tbody id="prodBody"></tbody></table>
+  </div>
+</div>
+
+<!-- ═══ LOCATIONS ═══ -->
+<div id="pg-locations" class="pg">
+  <div class="pt">Geo Risk Intelligence</div><div class="ps">City-level return risk — Pakistan focus</div>
+  <div class="kg k3">
+    <div class="kp"><div class="kl">High-risk Cities</div><div class="kv vr">4</div><div class="kd db">Needs action</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Riskiest City</div><div class="kv" style="font-size:17px">Hyderabad</div><div class="kd db">41% return rate</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Safest City</div><div class="kv vg" style="font-size:17px">Islamabad</div><div class="kd dg">11% return rate</div><div class="kb bg"></div></div>
+  </div>
+  <div class="g2">
+    <div class="cd"><div class="ch">Return rate by city</div><div class="cw h200" style="margin-top:8px"><canvas id="cityChart"></canvas></div></div>
+    <div class="cd"><div class="ch">City breakdown</div>
+      <table class="tbl" style="margin-top:8px">
+        <thead><tr><th>City</th><th>Orders</th><th>Returns</th><th>Rate</th><th>Risk</th><th>Trend</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Hyderabad</strong></td><td class="mn">312</td><td class="mn">128</td><td><span class="rp rh">41%</span></td><td><span class="bg-h">High</span></td><td style="color:var(--red);font-size:10px">▲+9%</td></tr>
+          <tr><td><strong>Karachi</strong></td><td class="mn">1,102</td><td class="mn">396</td><td><span class="rp rh">36%</span></td><td><span class="bg-h">High</span></td><td style="color:var(--red);font-size:10px">▲+14%</td></tr>
+          <tr><td>Rawalpindi</td><td class="mn">284</td><td class="mn">95</td><td><span class="rp rh">33%</span></td><td><span class="bg-h">High</span></td><td style="color:var(--amb);font-size:10px">▲+4%</td></tr>
+          <tr><td>Faisalabad</td><td class="mn">391</td><td class="mn">121</td><td><span class="rp rh">31%</span></td><td><span class="bg-h">High</span></td><td style="color:var(--amb);font-size:10px">▲+2%</td></tr>
+          <tr><td>Lahore</td><td class="mn">892</td><td class="mn">232</td><td><span class="rp rm">26%</span></td><td><span class="bg-m">Medium</span></td><td style="color:var(--amb);font-size:10px">▲+1%</td></tr>
+          <tr><td>Multan</td><td class="mn">261</td><td class="mn">60</td><td><span class="rp rm">23%</span></td><td><span class="bg-m">Medium</span></td><td style="color:var(--grn);font-size:10px">▼−2%</td></tr>
+          <tr><td>Peshawar</td><td class="mn">198</td><td class="mn">32</td><td><span class="rp rm">16%</span></td><td><span class="bg-m">Medium</span></td><td style="color:var(--grn);font-size:10px">▼−1%</td></tr>
+          <tr><td>Islamabad</td><td class="mn">402</td><td class="mn">44</td><td><span class="rp rb">11%</span></td><td><span class="bg-l">Low</span></td><td style="color:var(--grn);font-size:10px">▼−3%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FINANCIAL ═══ -->
+<div id="pg-financial" class="pg">
+  <div class="pt">Financial Impact</div><div class="ps">Revenue lost and logistics cost from returns</div>
+  <div class="kg k4">
+    <div class="kp"><div class="kl">Total Revenue</div><div class="kv vg">₨6.8M</div><div class="kd dg">▲ 11% growth</div><div class="kb bg"></div></div>
+    <div class="kp"><div class="kl">Revenue Lost</div><div class="kv vr">₨1.2M</div><div class="kd db">17.6% of revenue</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Logistics Loss</div><div class="kv va">₨378K</div><div class="kd db">945 × ₨400</div><div class="kb ba"></div></div>
+    <div class="kp"><div class="kl">Total Impact</div><div class="kv vr">₨1.58M</div><div class="kd db">23.2% of revenue</div><div class="kb br"></div></div>
+  </div>
+  <div class="g2">
+    <div class="cd"><div class="ch">Revenue vs Loss</div><div class="cw h170" style="margin-top:8px"><canvas id="finChart"></canvas></div></div>
+    <div class="cd"><div class="ch">Loss by City (top 5)</div>
+      <div style="margin-top:12px">
+        <div class="br-row"><div class="br-l">Karachi</div><div class="br-t"><div class="br-f" style="width:100%;background:var(--red)"></div></div><div class="br-v">₨504K</div></div>
+        <div class="br-row"><div class="br-l">Lahore</div><div class="br-t"><div class="br-f" style="width:58%;background:var(--amb)"></div></div><div class="br-v">₨295K</div></div>
+        <div class="br-row"><div class="br-l">Faisalabad</div><div class="br-t"><div class="br-f" style="width:30%;background:var(--amb)"></div></div><div class="br-v">₨154K</div></div>
+        <div class="br-row"><div class="br-l">Hyderabad</div><div class="br-t"><div class="br-f" style="width:24%;background:var(--amb)"></div></div><div class="br-v">₨122K</div></div>
+        <div class="br-row"><div class="br-l">Rawalpindi</div><div class="br-t"><div class="br-f" style="width:22%;background:var(--tx3)"></div></div><div class="br-v">₨114K</div></div>
+        <div style="margin-top:8px;padding:7px 9px;background:var(--sf2);border-radius:7px;font-size:10.5px;color:var(--tx2)">Cost per return: <strong class="mn">₨400</strong> <span style="color:var(--tx3)">(configurable)</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="cd"><div class="ch">By Payment Type</div>
+      <div style="margin-top:8px;padding:9px;background:#fde8e6;border-radius:8px;border:1px solid #f5c5c0;margin-bottom:7px"><div style="font-size:9.5px;color:var(--red);margin-bottom:2px">COD Orders</div><div style="font-size:18px;font-family:'Syne',sans-serif;font-weight:700;color:#9b2c1f">₨ 924K</div><div style="font-size:9.5px;color:#9b2c1f">73.8% of total loss</div></div>
+      <div style="padding:9px;background:#dbeafe;border-radius:8px;border:1px solid #b3d0f5"><div style="font-size:9.5px;color:var(--blu);margin-bottom:2px">Prepaid Orders</div><div style="font-size:18px;font-family:'Syne',sans-serif;font-weight:700;color:#1a4e8a">₨ 276K</div><div style="font-size:9.5px;color:#1a4e8a">26.2% of total loss</div></div>
+    </div>
+    <div class="cd"><div class="ch">Weekly Loss Trend</div><div class="cw h130" style="margin-top:8px"><canvas id="wkLossChart"></canvas></div></div>
+    <div class="cd"><div class="ch">Summary</div>
+      <table class="tbl" style="margin-top:8px">
+        <tbody>
+          <tr><td style="color:var(--tx2)">Gross Revenue</td><td class="mn" style="text-align:right;font-weight:500">₨6,800,000</td></tr>
+          <tr><td style="color:var(--tx2)">Return Value Lost</td><td class="mn" style="text-align:right;font-weight:500;color:var(--red)">₨1,200,000</td></tr>
+          <tr><td style="color:var(--tx2)">Logistics Costs</td><td class="mn" style="text-align:right;font-weight:500;color:var(--amb)">₨378,000</td></tr>
+          <tr><td style="color:var(--tx2)">Net Recoverable</td><td class="mn" style="text-align:right;font-weight:500;color:var(--grn)">₨5,222,000</td></tr>
+          <tr><td style="color:var(--tx2)">Return Impact %</td><td class="mn" style="text-align:right;font-weight:700;color:var(--red)">23.2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RECOMMENDATIONS ═══ -->
+<div id="pg-recommendations" class="pg">
+  <div class="pt">Actionable Insights</div><div class="ps">Rule-based recommendations from your return patterns</div>
+  <div class="g2">
+    <div>
+      <div class="sec-lbl" style="color:var(--red)">● High Priority</div>
+      <div class="rc"><div class="rt">IF size_return_rate &gt; 40%</div><div class="ra">Add size charts to Embroidered Kameez and Lawn Print Kurti</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><span class="ri">↗ Reduce size returns by ~30%</span><span class="rg">Kameez, Kurti</span></div></div>
+      <div class="rc"><div class="rt">IF city_return_rate(KHI,HYD) &gt; 30%</div><div class="ra">Enable confirmation call before shipping to Karachi and Hyderabad</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><span class="ri">↗ Reduce fraudulent COD returns by ~25%</span><span class="rg">KHI, HYD</span></div></div>
+      <div class="rc"><div class="rt">IF COD_return_rate &gt; 35%</div><div class="ra">Offer 5% prepaid discount at checkout — highlight prominently</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><span class="ri">↗ Shift 15% COD to prepaid</span><span class="rg">All COD orders</span></div></div>
+    </div>
+    <div>
+      <div class="sec-lbl" style="color:var(--amb)">● Medium Priority</div>
+      <div class="rc"><div class="rt">IF delivery_time &gt; 5d AND return_rate &gt; 50%</div><div class="ra">Negotiate SLA with courier for Sindh — target 3-day delivery</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><span class="ri">↗ Reduce late-delivery returns by ~40%</span><span class="rg">Sindh</span></div></div>
+      <div class="rc"><div class="rt">IF customer.risk_score = HIGH</div><div class="ra">Block COD for flagged customers — require prepaid only</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><span class="ri">↗ Eliminate ~60% of high-risk losses</span><span class="rg">187 customers</span></div></div>
+      <div class="rc"><div class="rt">IF quality_return_rate &gt; 20%</div><div class="ra">Review QC for Silk Dupatta — improve packaging</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><span class="ri">↗ Reduce quality returns by ~20%</span><span class="rg">Silk Dupatta</span></div></div>
+    </div>
+  </div>
+</div>
+<!-- ═══ COURIERS ═══ -->
+<div id="pg-couriers" class="pg">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+    <div><div class="pt">Courier Analytics</div><div class="ps">From Shopify fulfillment data · all integrated couriers</div></div>
+    <div style="display:flex;align-items:center;gap:5px;background:var(--sf2);padding:5px 10px;border-radius:20px;border:1px solid var(--bd2);font-size:10px;color:var(--tx3)"><span style="width:6px;height:6px;border-radius:50%;background:var(--grn);display:inline-block"></span>Shopify API connected</div>
+  </div>
+  <div class="kg k5">
+    <div class="kp"><div class="kl">Total Shipments</div><div class="kv">3,842</div><div class="kb bb"></div></div>
+    <div class="kp"><div class="kl">Courier Returns</div><div class="kv vr">945</div><div class="kd db">24.6% rate</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Best Courier</div><div class="kv vg" style="font-size:17px">M&amp;P</div><div class="kd dg">8.9% return rate</div><div class="kb bg"></div></div>
+    <div class="kp"><div class="kl">Worst Courier</div><div class="kv vr" style="font-size:17px">Trax</div><div class="kd db">35% return rate</div><div class="kb br"></div></div>
+    <div class="kp"><div class="kl">Avg Delivery</div><div class="kv va">4.2d</div><div class="kd db">Target: ≤3 days</div><div class="kb ba"></div></div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn on" onclick="cTab(0,this)">Overview</button>
+    <button class="tab-btn" onclick="cTab(1,this)">City Matrix</button>
+    <button class="tab-btn" onclick="cTab(2,this)">Rankings</button>
+    <button class="tab-btn" onclick="cTab(3,this)">Trends</button>
+    <button class="tab-btn" onclick="cTab(4,this)">Suggestions</button>
+  </div>
+
+  <div id="ct0">
+    <div class="g2">
+      <div class="cd"><div class="ch">Overall Performance</div><div class="cs">Click row → see city breakdown</div>
+        <table class="tbl">
+          <thead><tr><th>Courier</th><th>Shipments</th><th>Returns</th><th>Return %</th><th>Avg Days</th><th>On-time</th></tr></thead>
+          <tbody>
+            <tr onclick="setCF('M&P');cTab(1,null)" style="cursor:pointer"><td><div style="display:flex;align-items:center;gap:7px"><div style="width:20px;height:20px;border-radius:50%;background:#5a8f2c;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff">MP</div><strong>M&amp;P</strong></div></td><td class="mn">493</td><td class="mn">44</td><td><span class="rp rb">8.9%</span></td><td class="mn" style="color:var(--grn)">2.9d</td><td><div style="display:flex;align-items:center;gap:4px"><div style="width:44px;height:4px;background:var(--sf2);border-radius:2px;overflow:hidden"><div style="width:91%;height:4px;background:#5a8f2c;border-radius:2px"></div></div><span class="mn" style="font-size:9px">91%</span></div></td></tr>
+            <tr onclick="setCF('PostEx');cTab(1,null)" style="cursor:pointer"><td><div style="display:flex;align-items:center;gap:7px"><div style="width:20px;height:20px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff">PX</div><strong>PostEx</strong></div></td><td class="mn">612</td><td class="mn">98</td><td><span class="rp rb">16%</span></td><td class="mn" style="color:var(--grn)">3.2d</td><td><div style="display:flex;align-items:center;gap:4px"><div style="width:44px;height:4px;background:var(--sf2);border-radius:2px;overflow:hidden"><div style="width:86%;height:4px;background:#7c3aed;border-radius:2px"></div></div><span class="mn" style="font-size:9px">86%</span></div></td></tr>
+            <tr onclick="setCF('TCS');cTab(1,null)" style="cursor:pointer"><td><div style="display:flex;align-items:center;gap:7px"><div style="width:20px;height:20px;border-radius:50%;background:#2e6fb5;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff">TC</div><strong>TCS</strong></div></td><td class="mn">741</td><td class="mn">178</td><td><span class="rp rm">24%</span></td><td class="mn" style="color:var(--amb)">3.8d</td><td><div style="display:flex;align-items:center;gap:4px"><div style="width:44px;height:4px;background:var(--sf2);border-radius:2px;overflow:hidden"><div style="width:79%;height:4px;background:#2e6fb5;border-radius:2px"></div></div><span class="mn" style="font-size:9px">79%</span></div></td></tr>
+            <tr onclick="setCF('Leopards');cTab(1,null)" style="cursor:pointer"><td><div style="display:flex;align-items:center;gap:7px"><div style="width:20px;height:20px;border-radius:50%;background:#e08c2a;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff">LE</div><strong>Leopards</strong></div></td><td class="mn">894</td><td class="mn">259</td><td><span class="rp rh">29%</span></td><td class="mn" style="color:var(--amb)">4.6d</td><td><div style="display:flex;align-items:center;gap:4px"><div style="width:44px;height:4px;background:var(--sf2);border-radius:2px;overflow:hidden"><div style="width:68%;height:4px;background:#e08c2a;border-radius:2px"></div></div><span class="mn" style="font-size:9px">68%</span></div></td></tr>
+            <tr onclick="setCF('Trax');cTab(1,null)" style="cursor:pointer"><td><div style="display:flex;align-items:center;gap:7px"><div style="width:20px;height:20px;border-radius:50%;background:#d94f3d;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff">TR</div><strong>Trax</strong></div></td><td class="mn">1,102</td><td class="mn">386</td><td><span class="rp rh">35%</span></td><td class="mn" style="color:var(--red)">5.1d</td><td><div style="display:flex;align-items:center;gap:4px"><div style="width:44px;height:4px;background:var(--sf2);border-radius:2px;overflow:hidden"><div style="width:61%;height:4px;background:#d94f3d;border-radius:2px"></div></div><span class="mn" style="font-size:9px">61%</span></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cd"><div class="ch">Return Rate Comparison</div><div class="cs">Lower is better</div><div class="cw h200"><canvas id="courBar"></canvas></div></div>
+    </div>
+  </div>
+
+  <div id="ct1" style="display:none">
+    <div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:10.5px;color:var(--tx2)">City:</span>
+      <button class="fb-btn sel" id="cyf-All" onclick="setCY('All')">All</button>
+      <button class="fb-btn" id="cyf-Karachi" onclick="setCY('Karachi')">Karachi</button>
+      <button class="fb-btn" id="cyf-Lahore" onclick="setCY('Lahore')">Lahore</button>
+      <button class="fb-btn" id="cyf-Islamabad" onclick="setCY('Islamabad')">Islamabad</button>
+      <button class="fb-btn" id="cyf-Faisalabad" onclick="setCY('Faisalabad')">Faisalabad</button>
+      <button class="fb-btn" id="cyf-Hyderabad" onclick="setCY('Hyderabad')">Hyderabad</button>
+      <button class="fb-btn" id="cyf-Multan" onclick="setCY('Multan')">Multan</button>
+      <button class="fb-btn" id="cyf-Peshawar" onclick="setCY('Peshawar')">Peshawar</button>
+      <span style="margin-left:6px;font-size:10.5px;color:var(--tx2)">Courier:</span>
+      <button class="fb-btn sel" id="cof-All" onclick="setCF('All')">All</button>
+      <button class="fb-btn" id="cof-Trax" onclick="setCF('Trax')">Trax</button>
+      <button class="fb-btn" id="cof-Leopards" onclick="setCF('Leopards')">Leopards</button>
+      <button class="fb-btn" id="cof-TCS" onclick="setCF('TCS')">TCS</button>
+      <button class="fb-btn" id="cof-PostEx" onclick="setCF('PostEx')">PostEx</button>
+      <button class="fb-btn" id="cof-M&P" onclick="setCF('M&P')">M&amp;P</button>
+    </div>
+    <div class="g2">
+      <div class="cd"><div class="ch">Filtered matrix</div><table class="tbl"><thead><tr><th>Rank</th><th>Courier</th><th>City</th><th>Ships</th><th>Ret</th><th>Rate</th><th>Days</th><th>vs Avg</th></tr></thead><tbody id="mxBody"></tbody></table></div>
+      <div class="cd"><div class="ch">Heatmap: courier × city</div><div class="cs">Colour = severity</div><div id="hmGrid" style="overflow-x:auto;margin-top:4px"></div></div>
+    </div>
+  </div>
+
+  <div id="ct2" style="display:none">
+    <div class="g2">
+      <div class="cd"><div class="ch">Best courier per city</div>
+        <table class="tbl" style="margin-top:8px">
+          <thead><tr><th>City</th><th>Best</th><th>Rate</th><th>Worst</th><th>Rate</th><th>Gap</th></tr></thead>
+          <tbody id="rkBody"></tbody>
+        </table>
+      </div>
+      <div class="cd"><div class="ch">Overall Ranking</div><div class="cs">Composite score</div><div id="rkList" style="margin-top:6px"></div></div>
+    </div>
+  </div>
+
+  <div id="ct3" style="display:none">
+    <div class="cd" style="margin-bottom:12px"><div class="ch">Return Rate Trend — 6 Months</div><div class="cs">Monthly % — lower is better</div><div class="cw h200" style="margin-top:6px"><canvas id="cTrend"></canvas></div></div>
+    <div class="g3">
+      <div class="cd"><div class="ch">On-time Delivery</div><div class="cw h130" style="margin-top:6px"><canvas id="cOT"></canvas></div></div>
+      <div class="cd"><div class="ch">Avg Delivery Days</div><div class="cw h130" style="margin-top:6px"><canvas id="cDays"></canvas></div></div>
+      <div class="cd"><div class="ch">Lost / Damage Rate</div>
+        <div style="margin-top:10px">
+          <div class="br-row"><div class="br-l">Trax</div><div class="br-t"><div class="br-f" style="width:63%;background:#d94f3d"></div></div><div class="br-v">2.1%</div></div>
+          <div class="br-row"><div class="br-l">Leopards</div><div class="br-t"><div class="br-f" style="width:42%;background:#e08c2a"></div></div><div class="br-v">1.4%</div></div>
+          <div class="br-row"><div class="br-l">TCS</div><div class="br-t"><div class="br-f" style="width:24%;background:#2e6fb5"></div></div><div class="br-v">0.8%</div></div>
+          <div class="br-row"><div class="br-l">PostEx</div><div class="br-t"><div class="br-f" style="width:15%;background:#7c3aed"></div></div><div class="br-v">0.5%</div></div>
+          <div class="br-row"><div class="br-l">M&amp;P</div><div class="br-t"><div class="br-f" style="width:9%;background:#5a8f2c"></div></div><div class="br-v">0.3%</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ct4" style="display:none">
+    <div class="g2">
+      <div>
+        <div class="sec-lbl" style="color:var(--red)">● Urgent Action</div>
+        <div class="rc"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="cc" style="background:#fde8e6;color:#9b2c1f;border:1px solid #f5c5c0"><span style="width:5px;height:5px;border-radius:50%;background:#d94f3d;display:inline-block"></span>Trax</span><span class="bg-h">High</span></div><div style="font-size:11px;color:var(--tx2);margin-bottom:7px">35% return rate · 5.1d avg · 61% on-time</div><div class="ra">→ Renegotiate SLA — demand ≤3 day delivery</div><div class="ra">→ Suspend Trax for Hyderabad &amp; Faisalabad immediately</div><div class="ra">→ Add tracking link to order confirmation SMS</div><div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bd)"><span class="ri">↗ Could reduce Trax returns by ~40%</span></div></div>
+        <div class="rc"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="cc" style="background:#fef3df;color:#915e10;border:1px solid #f9dfa0"><span style="width:5px;height:5px;border-radius:50%;background:#e08c2a;display:inline-block"></span>Leopards</span><span class="bg-h">High</span></div><div style="font-size:11px;color:var(--tx2);margin-bottom:7px">29% return rate · slow in Sindh</div><div class="ra">→ Switch Hyderabad shipments to PostEx or M&amp;P</div><div class="ra">→ Require proof-of-delivery photo for COD orders</div><div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bd)"><span class="ri">↗ Saves ~33 returns/month in Hyderabad</span></div></div>
+      </div>
+      <div>
+        <div class="sec-lbl" style="color:var(--grn)">● Optimization</div>
+        <div class="rc"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="cc" style="background:#dbeafe;color:#1a4e8a;border:1px solid #b3d0f5"><span style="width:5px;height:5px;border-radius:50%;background:#2e6fb5;display:inline-block"></span>TCS</span><span class="bg-m">Medium</span></div><div class="ra">→ Make TCS primary for Rawalpindi &amp; Islamabad</div><div class="ra">→ Request Sunday delivery option</div><div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bd)"><span class="ri">↗ Reduces avg delivery by 0.5 days</span></div></div>
+        <div class="rc"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="cc" style="background:#e8f4dc;color:#2d5c0e;border:1px solid #bfe09a"><span style="width:5px;height:5px;border-radius:50%;background:#5a8f2c;display:inline-block"></span>M&amp;P</span><span class="bg-l">Best</span></div><div class="ra">→ Make default for all orders &gt;₨3,000</div><div class="ra">→ Expand coverage to Peshawar &amp; Hyderabad</div><div class="ra">→ Negotiate priority pickup slots</div><div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--bd)"><span class="ri">↗ Cuts high-value returns by 60%</span></div></div>
+        <div style="background:linear-gradient(135deg,#f0fdf4,#f5f4f0);border:1px solid #d1fae5;border-radius:var(--rad);padding:12px;margin-top:4px">
+          <div style="font-size:12px;font-weight:700;font-family:'Syne',sans-serif;color:#166534;margin-bottom:8px">📋 Allocation Strategy</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:10.5px">
+            <div style="background:#fff;border-radius:7px;padding:8px;border:1px solid var(--bd)"><div style="font-weight:700;color:#5a8f2c;margin-bottom:3px">M&amp;P +40%</div>Default high-value orders</div>
+            <div style="background:#fff;border-radius:7px;padding:8px;border:1px solid var(--bd)"><div style="font-weight:700;color:#7c3aed;margin-bottom:3px">PostEx +25%</div>Karachi, Lahore COD</div>
+            <div style="background:#fff;border-radius:7px;padding:8px;border:1px solid var(--bd)"><div style="font-weight:700;color:#2e6fb5;margin-bottom:3px">TCS maintain</div>RWP, ISB routes</div>
+            <div style="background:#fff;border-radius:7px;padding:8px;border:1px solid var(--bd)"><div style="font-weight:700;color:#d94f3d;margin-bottom:3px">Trax −60%</div>Suspend HYD, FSD</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ═══ ACTIONS TODAY ═══ -->
+<div id="pg-actions" class="pg">
+  <div class="pt">Actions to Take Today</div>
+  <div class="ps">Prioritised decisions based on your live return data · Updated daily</div>
+
+  <!-- FORECAST -->
+  <div class="fc-box">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#166534;margin-bottom:4px">📈 Forecast: Act on all 9 items today</div>
+        <div style="display:flex;align-items:baseline;gap:8px"><div class="fc-num">−10.8%</div><div style="font-size:13px;color:#2d5c0e;font-weight:600">reduction in return rate</div></div>
+        <div style="font-size:11px;color:#2d5c0e;margin-top:3px">From <strong>24.6%</strong> down to an estimated <strong>13.8%</strong></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:9.5px;color:#2d5c0e;margin-bottom:4px;font-weight:600">Revenue recovered monthly</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#166534">₨ 648K</div>
+        <div style="font-size:10px;color:#5a8f2c;margin-top:2px">Based on current volume</div>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <div style="font-size:9.5px;color:#2d5c0e;font-weight:600;margin-bottom:4px">Projected return rate after all actions</div>
+      <div class="fc-bar-w">
+        <div class="fc-bar-f" id="fcBar" style="width:0%"><span style="font-size:9px;color:#fff;font-weight:700">13.8% (target)</span></div>
+        <div style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:#2d5c0e;font-weight:700">Current: 24.6%</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#5a8f2c;margin-top:2px"><span>0%</span><span>Target: 13.8%</span><span>Current: 24.6%</span></div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <div style="background:#fff;border-radius:7px;padding:5px 10px;border:1px solid #d1fae5;font-size:10px;color:#166534"><strong>Courier switch</strong> → −4.2%</div>
+      <div style="background:#fff;border-radius:7px;padding:5px 10px;border:1px solid #d1fae5;font-size:10px;color:#166534"><strong>Size charts</strong> → −2.1%</div>
+      <div style="background:#fff;border-radius:7px;padding:5px 10px;border:1px solid #d1fae5;font-size:10px;color:#166534"><strong>COD discount</strong> → −1.8%</div>
+      <div style="background:#fff;border-radius:7px;padding:5px 10px;border:1px solid #d1fae5;font-size:10px;color:#166534"><strong>Risk blocks</strong> → −1.5%</div>
+      <div style="background:#fff;border-radius:7px;padding:5px 10px;border:1px solid #d1fae5;font-size:10px;color:#166534"><strong>Confirm calls</strong> → −1.2%</div>
+    </div>
+  </div>
+
+  <div class="sec-lbl" style="color:var(--red)">🚨 Urgent — Do These First</div>
+
+  <div class="ac ac-u">
+    <div class="ac-hd">
+      <div><div class="ac-t">🚚 Suspend Trax for Hyderabad &amp; Faisalabad</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-u">Urgent</span><span style="font-size:10px;color:var(--tx3)">Courier · Logistics</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−4.2%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">Trax has a 47.7% return rate in Hyderabad and 41.1% in Faisalabad — worst of any courier in any city. Every Trax shipment in these cities costs ~₨200 in losses. Switch to PostEx or M&P immediately.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Shopify Shipping → disable Trax for Hyderabad and Faisalabad zones</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Set M&P or PostEx as default courier for these two cities</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Contact Trax account manager — demand SLA renegotiation before reinstating</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ Saves ~₨85K/month · 219 returns prevented</span><span style="font-size:10px;color:var(--tx3)">Hyderabad, Faisalabad</span></div>
+  </div>
+
+  <div class="ac ac-u">
+    <div class="ac-hd">
+      <div><div class="ac-t">👗 Add Size Charts to Top 2 Products</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-u">Urgent</span><span style="font-size:10px;color:var(--tx3)">Product Listing · Quick win</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−2.1%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">Embroidered Kameez (M) has 52% return rate and Lawn Print Kurti (L) has 44% — both driven by size issues (34% of all returns). This is a 30-minute fix with massive impact.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Shopify Products → Embroidered Kameez → add size guide image to description</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Do the same for Lawn Print Kurti — include chest, waist, length measurements</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Add "How to measure yourself" 3-step graphic to both listings</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ Prevents ~97 returns/month · saves ₨123K</span><span style="font-size:10px;color:var(--tx3)">Kameez M, Kurti L</span></div>
+  </div>
+
+  <div class="ac ac-u">
+    <div class="ac-hd">
+      <div><div class="ac-t">🚫 Block COD for 3 High-Risk Customers</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-u">Urgent</span><span style="font-size:10px;color:var(--tx3)">Customer Risk · Fraud Prevention</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−1.5%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">Ayesha Farooq (71%), Bilal Mahmood (60%), Sara Khan (50%) are flagged high-risk. All COD ratio above 80% with 4+ orders. They account for 8 returns in the last 30 days.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Tag these customers as "high-risk-cod" in their Shopify profiles</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Use COD Order Verifier app to block COD for tagged customers</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Send them a prepaid-only offer with 5% discount to retain them</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ Prevents ~70 returns/month · saves ₨89K</span><span style="font-size:10px;color:var(--tx3)">3 customers → 187 total flagged</span></div>
+  </div>
+
+  <div class="sec-lbl" style="color:var(--amb);margin-top:16px">⚡ High Priority — Do This Week</div>
+
+  <div class="ac ac-h">
+    <div class="ac-hd">
+      <div><div class="ac-t">📞 Enable Pre-Delivery Calls for Karachi</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-h">High</span><span style="font-size:10px;color:var(--tx3)">Operations · Geo Risk</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−1.2%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">Karachi return rate spiked to 36% (+14%). Pre-delivery confirmation calls reduce fake/unintended COD deliveries which are a major return driver here.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Instruct PostEx or M&P to call before all Karachi COD orders</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Add checkout note: "We'll call before delivery" for Karachi</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Track Karachi return rate weekly — target below 20% in 4 weeks</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ Prevents ~56 returns/month in Karachi</span><span style="font-size:10px;color:var(--tx3)">Karachi · 1,102 orders/month</span></div>
+  </div>
+
+  <div class="ac ac-h">
+    <div class="ac-hd">
+      <div><div class="ac-t">💰 Launch 5% Prepaid Discount at Checkout</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-h">High</span><span style="font-size:10px;color:var(--tx3)">Checkout · Payment Strategy</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−1.8%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">68% of orders are COD with 38.2% return rate vs 11.4% for prepaid. Shifting even 15% of COD customers to prepaid dramatically cuts returns and logistics losses.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Create Shopify discount code "PREPAID5" — 5% off, visible on checkout</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Add cart page banner: "Pay online, save 5% + faster delivery"</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Send SMS to repeat COD customers announcing the offer</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ Saves ₨156K/month if 15% COD shifts to prepaid</span><span style="font-size:10px;color:var(--tx3)">All 2,612 monthly COD orders</span></div>
+  </div>
+
+  <div class="ac ac-h">
+    <div class="ac-hd">
+      <div><div class="ac-t">📦 Switch Leopards → M&amp;P for Hyderabad</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-h">High</span><span style="font-size:10px;color:var(--tx3)">Courier · Sindh Region</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−0.8%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">Leopards has 44.6% return rate in Hyderabad — 2nd worst. M&P delivers same city at only 13.9%. Switching is a simple routing change in Shopify.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Contact M&P to confirm Hyderabad coverage and rates</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Update Shopify Shipping zones — assign M&P as default for Hyderabad</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Monitor for 2 weeks and compare return rates</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ Prevents ~33 returns/month</span><span style="font-size:10px;color:var(--tx3)">Hyderabad · Leopards volume</span></div>
+  </div>
+
+  <div class="sec-lbl" style="color:var(--blu);margin-top:16px">📋 Medium Priority — Plan This Month</div>
+
+  <div class="ac ac-m">
+    <div class="ac-hd">
+      <div><div class="ac-t">📸 Add Multi-Angle Photos for Silk Dupatta</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-m">Medium</span><span style="font-size:10px;color:var(--tx3)">Product Quality · Listing</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−0.5%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">Silk Dupatta has 37% return rate driven by quality/expectation mismatch. Better photos (5 angles, texture close-ups) reduce this by up to 20%.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Arrange product shoot — 5 angles minimum, fabric close-up required</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Add a short video of fabric in motion if possible</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Update Shopify listing description for accuracy</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ Prevents ~21 returns/month · saves ₨27K</span><span style="font-size:10px;color:var(--tx3)">Silk Dupatta Red</span></div>
+  </div>
+
+  <div class="ac ac-m">
+    <div class="ac-hd">
+      <div><div class="ac-t">⏱ Renegotiate TCS SLA for Rawalpindi &amp; Islamabad</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-m">Medium</span><span style="font-size:10px;color:var(--tx3)">Courier · SLA</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−0.4%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">TCS performs best in Rawalpindi and Islamabad but avg delivery is 3.8 days. Committing TCS to a 3-day max SLA with a financial penalty would reduce late returns significantly.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Call TCS account manager — request priority pickup for next-day dispatch</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Negotiate 3-day SLA for Rawalpindi and Islamabad in writing</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Request Sunday delivery inclusion to eliminate 5+ day shipments</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ Prevents ~18 late-delivery returns/month</span><span style="font-size:10px;color:var(--tx3)">Rawalpindi, Islamabad</span></div>
+  </div>
+
+  <div class="sec-lbl" style="color:var(--grn);margin-top:16px">✅ Growth Moves — Do When Ready</div>
+
+  <div class="ac ac-g">
+    <div class="ac-hd">
+      <div><div class="ac-t">🌟 Make M&amp;P Default for All Orders &gt;₨3,000</div><div style="margin-top:3px;display:flex;gap:5px;align-items:center"><span class="pt-g">Growth</span><span style="font-size:10px;color:var(--tx3)">Courier Strategy · Revenue</span></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--grn)">−0.3%</div><div style="font-size:9.5px;color:var(--tx3)">return rate reduction</div></div>
+    </div>
+    <div class="ac-bdy">M&P has the lowest return rate (8.9%) and fastest delivery (2.9 days). High-value orders (&gt;₨3,000) currently have 41% return rate — routing via M&P would bring it to ~15–18%.</div>
+    <div><div class="ac-step"><span class="ac-arr">→</span><span>Shopify Shipping: create rule for orders above ₨3,000 → default to M&P</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Negotiate bulk volume discount with M&P for &gt;600 shipments/month</span></div>
+    <div class="ac-step"><span class="ac-arr">→</span><span>Verify M&P covers all cities — use PostEx as secondary where not available</span></div></div>
+    <div class="ac-ft"><span class="ip">↗ High-value return rate drops 41% → ~18%</span><span style="font-size:10px;color:var(--tx3)">All orders &gt;₨3,000</span></div>
+  </div>
+
+  <!-- SCORECARD -->
+  <div class="cd" style="margin-top:8px">
+    <div class="ch">Action Impact Scorecard</div>
+    <table class="tbl" style="margin-top:10px">
+      <thead><tr><th>Action</th><th>Category</th><th>Priority</th><th>Returns Prevented/mo</th><th>Savings/mo</th><th>Rate Impact</th></tr></thead>
+      <tbody>
+        <tr><td>Suspend Trax (HYD, FSD)</td><td>Courier</td><td><span class="pt-u">Urgent</span></td><td class="mn">219</td><td class="mn" style="color:var(--grn)">₨85K</td><td class="mn" style="color:var(--grn);font-weight:700">−4.2%</td></tr>
+        <tr><td>Add size charts</td><td>Product</td><td><span class="pt-u">Urgent</span></td><td class="mn">97</td><td class="mn" style="color:var(--grn)">₨123K</td><td class="mn" style="color:var(--grn);font-weight:700">−2.1%</td></tr>
+        <tr><td>Prepaid discount 5%</td><td>Checkout</td><td><span class="pt-h">High</span></td><td class="mn">139</td><td class="mn" style="color:var(--grn)">₨156K</td><td class="mn" style="color:var(--grn);font-weight:700">−1.8%</td></tr>
+        <tr><td>Block COD for flagged customers</td><td>Customer</td><td><span class="pt-u">Urgent</span></td><td class="mn">70</td><td class="mn" style="color:var(--grn)">₨89K</td><td class="mn" style="color:var(--grn);font-weight:700">−1.5%</td></tr>
+        <tr><td>Confirmation calls (Karachi)</td><td>Ops</td><td><span class="pt-h">High</span></td><td class="mn">56</td><td class="mn" style="color:var(--grn)">₨71K</td><td class="mn" style="color:var(--grn);font-weight:700">−1.2%</td></tr>
+        <tr><td>Switch Leopards → M&P (HYD)</td><td>Courier</td><td><span class="pt-h">High</span></td><td class="mn">33</td><td class="mn" style="color:var(--grn)">₨42K</td><td class="mn" style="color:var(--grn);font-weight:700">−0.8%</td></tr>
+        <tr><td>Better photos for Silk Dupatta</td><td>Product</td><td><span class="pt-m">Medium</span></td><td class="mn">21</td><td class="mn" style="color:var(--grn)">₨27K</td><td class="mn" style="color:var(--grn);font-weight:700">−0.5%</td></tr>
+        <tr><td>TCS SLA renegotiation</td><td>Courier</td><td><span class="pt-m">Medium</span></td><td class="mn">18</td><td class="mn" style="color:var(--grn)">₨23K</td><td class="mn" style="color:var(--grn);font-weight:700">−0.4%</td></tr>
+        <tr><td>Scale M&P for high-value orders</td><td>Courier</td><td><span class="pt-g">Growth</span></td><td class="mn">14</td><td class="mn" style="color:var(--grn)">₨32K</td><td class="mn" style="color:var(--grn);font-weight:700">−0.3%</td></tr>
+        <tr style="background:var(--sf2)"><td><strong>Total (all actions)</strong></td><td></td><td></td><td class="mn" style="font-weight:700">667</td><td class="mn" style="font-weight:700;color:var(--grn)">₨648K</td><td class="mn" style="color:var(--grn);font-weight:700;font-size:14px">−10.8%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  </div></div></div>
+<script>
+// ════ DATA ════
+const CUSTS=[
+  {name:'Ayesha Farooq',city:'Karachi',phone:'+92-300-1234567',orders:7,returns:5,rate:71,cod:92,risk:'high'},
+  {name:'Bilal Mahmood',city:'Lahore',phone:'+92-321-9876543',orders:5,returns:3,rate:60,cod:85,risk:'high'},
+  {name:'Sara Khan',city:'Rawalpindi',phone:'+92-333-4567890',orders:4,returns:2,rate:50,cod:80,risk:'high'},
+  {name:'Ahmed Raza',city:'Faisalabad',phone:'+92-345-2345678',orders:6,returns:2,rate:38,cod:75,risk:'medium'},
+  {name:'Nadia Hussain',city:'Islamabad',phone:'+92-311-8765432',orders:3,returns:1,rate:33,cod:70,risk:'medium'},
+  {name:'Zainab Ali',city:'Multan',phone:'+92-312-3456789',orders:9,returns:2,rate:22,cod:55,risk:'medium'},
+  {name:'Omar Siddiqui',city:'Multan',phone:'+92-302-6543210',orders:8,returns:1,rate:12,cod:30,risk:'low'},
+  {name:'Fatima Malik',city:'Peshawar',phone:'+92-315-7654321',orders:9,returns:0,rate:8,cod:20,risk:'low'},
+  {name:'Hassan Sheikh',city:'Karachi',phone:'+92-300-8765432',orders:11,returns:1,rate:9,cod:25,risk:'low'},
+  {name:'Mariam Iqbal',city:'Lahore',phone:'+92-321-3456789',orders:6,returns:2,rate:28,cod:67,risk:'medium'},
+];
+const PRODS=[
+  {title:'Embroidered Kameez',cat:'Tops',variant:'Size M',sold:214,returned:111,rate:52},
+  {title:'Lawn Print Kurti',cat:'Tops',variant:'Size L',sold:189,returned:83,rate:44},
+  {title:'Silk Dupatta',cat:'Accessories',variant:'Red',sold:142,returned:53,rate:37},
+  {title:'Formal Shalwar',cat:'Bottoms',variant:'Size 38',sold:301,returned:96,rate:32},
+  {title:'Cotton Kurta',cat:'Tops',variant:'White XL',sold:275,returned:69,rate:25},
+  {title:'Linen Trousers',cat:'Bottoms',variant:'Beige 36',sold:180,returned:32,rate:18},
+  {title:'Printed Lawn Set',cat:'Sets',variant:'3-piece',sold:320,returned:42,rate:13},
+  {title:'Chiffon Dupatta',cat:'Accessories',variant:'Blue',sold:98,returned:11,rate:11},
+  {title:'Cambric Kurti',cat:'Tops',variant:'Size S',sold:241,returned:24,rate:10},
+  {title:'Palazzo Pants',cat:'Bottoms',variant:'Black M',sold:155,returned:12,rate:8},
+];
+const MATRIX=[
+  {courier:'Trax',city:'Karachi',shipments:298,returns:131,rate:44.0,days:5.8,rank:5},
+  {courier:'Leopards',city:'Karachi',shipments:241,returns:89,rate:36.9,days:5.1,rank:4},
+  {courier:'TCS',city:'Karachi',shipments:198,returns:61,rate:30.8,days:4.1,rank:3},
+  {courier:'PostEx',city:'Karachi',shipments:188,returns:45,rate:23.9,days:3.4,rank:2},
+  {courier:'M&P',city:'Karachi',shipments:177,returns:21,rate:11.9,days:2.8,rank:1},
+  {courier:'Trax',city:'Lahore',shipments:241,returns:80,rate:33.2,days:4.9,rank:5},
+  {courier:'Leopards',city:'Lahore',shipments:198,returns:54,rate:27.3,days:4.4,rank:4},
+  {courier:'TCS',city:'Lahore',shipments:184,returns:39,rate:21.2,days:3.5,rank:3},
+  {courier:'PostEx',city:'Lahore',shipments:142,returns:21,rate:14.8,days:3.0,rank:2},
+  {courier:'M&P',city:'Lahore',shipments:127,returns:8,rate:6.3,days:2.6,rank:1},
+  {courier:'Trax',city:'Islamabad',shipments:98,returns:22,rate:22.4,days:4.2,rank:5},
+  {courier:'Leopards',city:'Islamabad',shipments:88,returns:17,rate:19.3,days:4.0,rank:4},
+  {courier:'TCS',city:'Islamabad',shipments:82,returns:11,rate:13.4,days:3.2,rank:3},
+  {courier:'PostEx',city:'Islamabad',shipments:74,returns:7,rate:9.5,days:2.8,rank:2},
+  {courier:'M&P',city:'Islamabad',shipments:60,returns:2,rate:3.3,days:2.3,rank:1},
+  {courier:'Trax',city:'Faisalabad',shipments:112,returns:46,rate:41.1,days:5.5,rank:5},
+  {courier:'Leopards',city:'Faisalabad',shipments:98,returns:34,rate:34.7,days:5.0,rank:4},
+  {courier:'TCS',city:'Faisalabad',shipments:84,returns:22,rate:26.2,days:4.0,rank:3},
+  {courier:'PostEx',city:'Faisalabad',shipments:64,returns:11,rate:17.2,days:3.3,rank:2},
+  {courier:'M&P',city:'Faisalabad',shipments:33,returns:3,rate:9.1,days:2.7,rank:1},
+  {courier:'Trax',city:'Hyderabad',shipments:88,returns:42,rate:47.7,days:6.1,rank:5},
+  {courier:'Leopards',city:'Hyderabad',shipments:74,returns:33,rate:44.6,days:5.8,rank:4},
+  {courier:'TCS',city:'Hyderabad',shipments:62,returns:22,rate:35.5,days:4.8,rank:3},
+  {courier:'PostEx',city:'Hyderabad',shipments:52,returns:11,rate:21.2,days:3.9,rank:2},
+  {courier:'M&P',city:'Hyderabad',shipments:36,returns:5,rate:13.9,days:3.4,rank:1},
+  {courier:'Trax',city:'Multan',shipments:76,returns:26,rate:34.2,days:5.0,rank:5},
+  {courier:'Leopards',city:'Multan',shipments:62,returns:18,rate:29.0,days:4.5,rank:4},
+  {courier:'TCS',city:'Multan',shipments:43,returns:9,rate:20.9,days:3.7,rank:3},
+  {courier:'PostEx',city:'Multan',shipments:36,returns:5,rate:13.9,days:3.1,rank:2},
+  {courier:'M&P',city:'Multan',shipments:44,returns:2,rate:4.5,days:2.6,rank:1},
+  {courier:'Trax',city:'Peshawar',shipments:110,returns:38,rate:34.5,days:5.6,rank:5},
+  {courier:'Leopards',city:'Peshawar',shipments:61,returns:10,rate:16.4,days:4.3,rank:4},
+  {courier:'TCS',city:'Peshawar',shipments:20,returns:4,rate:20.0,days:3.9,rank:3},
+  {courier:'PostEx',city:'Peshawar',shipments:16,returns:3,rate:18.8,days:3.6,rank:2},
+  {courier:'M&P',city:'Peshawar',shipments:27,returns:2,rate:7.4,days:3.0,rank:1},
+];
+const CITY_RANKS=[
+  {city:'Hyderabad',best:'M&P',br:13.9,worst:'Trax',wr:47.7,gap:33.8},
+  {city:'Karachi',best:'M&P',br:11.9,worst:'Trax',wr:44.0,gap:32.1},
+  {city:'Faisalabad',best:'M&P',br:9.1,worst:'Trax',wr:41.1,gap:32.0},
+  {city:'Rawalpindi',best:'M&P',br:8.0,worst:'Trax',wr:39.2,gap:31.2},
+  {city:'Multan',best:'M&P',br:4.5,worst:'Trax',wr:34.2,gap:29.7},
+  {city:'Lahore',best:'M&P',br:6.3,worst:'Trax',wr:33.2,gap:26.9},
+  {city:'Peshawar',best:'M&P',br:7.4,worst:'Trax',wr:34.5,gap:27.1},
+  {city:'Islamabad',best:'M&P',br:3.3,worst:'Trax',wr:22.4,gap:19.1},
+];
+const CC={'Trax':'#d94f3d','Leopards':'#e08c2a','TCS':'#2e6fb5','PostEx':'#7c3aed','M&P':'#5a8f2c'};
+
+// ════ CHART REGISTRY ════
+const CI={};
+function mkC(id,cfg){
+  if(CI[id]){CI[id].destroy();}
+  const el=document.getElementById(id);
+  if(!el)return;
+  CI[id]=new Chart(el,cfg);
+}
+const BASE_OPTS={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+const GRID={color:'rgba(0,0,0,.04)'};
+
+// ════ NAV ════
+let _custF='all',_prodF='all',_cyF='All',_coF='All';
+let _ctI={};
+
+function goto(id,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on','c-on','a-on'));
+  if(el){
+    el.classList.add('on');
+    if(id==='couriers') el.classList.add('c-on');
+    if(id==='actions')  el.classList.add('a-on');
+  }
+  if(id==='overview'  && !CI.trendChart)  initOverview();
+  if(id==='locations' && !CI.cityChart)   initCity();
+  if(id==='financial' && !CI.finChart)    initFin();
+  if(id==='customers') renderCusts();
+  if(id==='products')  renderProds('all');
+  if(id==='couriers'  && !_ctI[0]){initCourBar();_ctI[0]=true;}
+  if(id==='actions'){setTimeout(()=>{const b=document.getElementById('fcBar');if(b)b.style.width='56%';},300);}
+}
+
+// ════ OVERVIEW CHARTS ════
+function initOverview(){
+  const lbs=[],rates=[18,21,19,24,28,22,25,31,27,24,20,18,22,26,29,35,30,28,24,22,25,28,32,27,30,34,28,26,24,25];
+  for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);lbs.push((d.getMonth()+1)+'/'+(d.getDate()));}
+  mkC('trendChart',{type:'line',data:{labels:lbs,datasets:[{label:'Return %',data:rates,borderColor:'#d94f3d',backgroundColor:'rgba(217,79,61,.07)',fill:true,tension:.4,pointRadius:0,borderWidth:2}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{maxTicksLimit:8,font:{size:9}},grid:{display:false}},y:{ticks:{callback:v=>v+'%',font:{size:9}},grid:GRID}}}});
+  mkC('payChart',{type:'doughnut',data:{labels:['COD','Prepaid'],datasets:[{data:[38.2,11.4],backgroundColor:['#d94f3d','#2e6fb5'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}});
+  mkC('reasonChart',{type:'bar',data:{labels:['Size','Quality','Mind','Late','Other'],datasets:[{data:[34,22,19,15,10],backgroundColor:['#d94f3d','#e08c2a','#a8a39d','#2e6fb5','#7c3aed'],borderWidth:0,borderRadius:3}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{callback:v=>v+'%',font:{size:9}},grid:GRID}}}});
+  mkC('courSnap',{type:'bar',data:{labels:['M&P','PostEx','TCS','Leopards','Trax'],datasets:[{data:[8.9,16,24,29,35],backgroundColor:['#5a8f2c','#7c3aed','#2e6fb5','#e08c2a','#d94f3d'],borderRadius:4,borderWidth:0}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{callback:v=>v+'%',font:{size:9}},grid:GRID,max:42}}}});
+}
+
+function initCity(){
+  const d=[{c:'Hyderabad',r:41},{c:'Karachi',r:36},{c:'Rawalpindi',r:33},{c:'Faisalabad',r:31},{c:'Lahore',r:26},{c:'Multan',r:23},{c:'Peshawar',r:16},{c:'Islamabad',r:11}];
+  mkC('cityChart',{type:'bar',data:{labels:d.map(x=>x.c),datasets:[{data:d.map(x=>x.r),backgroundColor:d.map(x=>x.r>30?'#d94f3d':x.r>15?'#e08c2a':'#5a8f2c'),borderRadius:4,borderWidth:0}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{callback:v=>v+'%',font:{size:9}},grid:GRID}}}});
+}
+
+function initFin(){
+  mkC('finChart',{type:'bar',data:{labels:['Revenue','Lost','Logistics'],datasets:[{data:[6800000,1200000,378000],backgroundColor:['#5a8f2c','#d94f3d','#e08c2a'],borderRadius:5,borderWidth:0}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{callback:v=>'₨'+Math.round(v/1000)+'K',font:{size:9}},grid:GRID}}}});
+  mkC('wkLossChart',{type:'bar',data:{labels:['Wk1','Wk2','Wk3','Wk4'],datasets:[{data:[285000,312000,298000,305000],backgroundColor:'#d94f3d',borderRadius:3,borderWidth:0}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{callback:v=>'₨'+Math.round(v/1000)+'K',font:{size:9}},grid:GRID}}}});
+}
+
+// ════ CUSTOMERS ════
+function filtCust(r){
+  _custF=r;
+  ['all','high','medium','low'].forEach(x=>{const b=document.getElementById('cf-'+x);if(b)b.classList.toggle('sel',x===r);});
+  renderCusts();
+}
+function renderCusts(){
+  const q=(document.getElementById('custSearch')||{}).value?.toLowerCase()||'';
+  const rows=CUSTS.filter(c=>(_custF==='all'||c.risk===_custF)&&(!q||c.name.toLowerCase().includes(q)||c.city.toLowerCase().includes(q)));
+  const rb=r=>r==='high'?'bg-h':r==='medium'?'bg-m':'bg-l';
+  const rc=r=>r>40?'color:var(--red);font-weight:700':r>25?'color:var(--amb);font-weight:700':'color:var(--grn);font-weight:700';
+  document.getElementById('custBody').innerHTML=rows.map(c=>`<tr>
+    <td><strong>${c.name}</strong></td><td>${c.city}</td>
+    <td class="mn" style="font-size:9.5px;color:var(--tx3)">${c.phone}</td>
+    <td class="mn" style="text-align:center">${c.orders}</td>
+    <td class="mn" style="text-align:center">${c.returns}</td>
+    <td class="mn" style="${rc(c.rate)}">${c.rate}%</td>
+    <td class="mn">${c.cod}%</td>
+    <td><span class="${rb(c.risk)}">${c.risk.charAt(0).toUpperCase()+c.risk.slice(1)}</span></td>
+  </tr>`).join('');
+}
+
+// ════ PRODUCTS ════
+function filtProd(cat){
+  _prodF=cat;
+  document.querySelectorAll('[id^="pf-"]').forEach(b=>b.classList.remove('sel'));
+  const el=document.getElementById('pf-'+cat);if(el)el.classList.add('sel');
+  renderProds(cat);
+}
+function renderProds(cat){
+  const data=cat==='all'?PRODS:PRODS.filter(p=>p.cat===cat);
+  const pc=r=>r>=40?'rh':r>=25?'rm':r>=15?'rb':'rl';
+  const bc=r=>r>=40?'var(--red)':r>=25?'var(--amb)':'var(--grn)';
+  document.getElementById('prodBody').innerHTML=data.map(p=>`<tr>
+    <td><strong>${p.title}</strong></td><td>${p.cat}</td>
+    <td style="color:var(--tx3);font-size:10px">${p.variant}</td>
+    <td class="mn">${p.sold}</td><td class="mn">${p.returned}</td>
+    <td><span class="rp ${pc(p.rate)}">${p.rate}%</span></td>
+    <td><div style="width:80px;height:5px;background:var(--sf2);border-radius:3px;overflow:hidden"><div style="width:${p.rate}%;height:5px;border-radius:3px;background:${bc(p.rate)}"></div></div></td>
+  </tr>`).join('');
+}
+
+// ════ COURIER TABS ════
+function cTab(idx,btn){
+  [0,1,2,3,4].forEach(i=>{const e=document.getElementById('ct'+i);if(e)e.style.display=i===idx?'block':'none';});
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  else { const bs=document.querySelectorAll('.tab-btn');if(bs[idx])bs[idx].classList.add('on'); }
+  if(!_ctI[idx]){
+    if(idx===0) initCourBar();
+    if(idx===1){renderMx();renderHm();}
+    if(idx===2) renderRanks();
+    if(idx===3) initCourTrends();
+    _ctI[idx]=true;
+  }
+}
+
+function initCourBar(){
+  mkC('courBar',{type:'bar',data:{labels:['M&P','PostEx','TCS','Leopards','Trax'],datasets:[{data:[8.9,16,24,29,35],backgroundColor:['#5a8f2c','#7c3aed','#2e6fb5','#e08c2a','#d94f3d'],borderRadius:5,borderWidth:0}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{callback:v=>v+'%',font:{size:9}},grid:GRID,max:42}}}});
+}
+
+function setCY(c){
+  _cyF=c;
+  document.querySelectorAll('[id^="cyf-"]').forEach(b=>b.classList.remove('sel'));
+  const el=document.getElementById('cyf-'+c);if(el)el.classList.add('sel');
+  if(_ctI[1]) renderMx();
+}
+function setCF(c){
+  _coF=c;
+  document.querySelectorAll('[id^="cof-"]').forEach(b=>b.classList.remove('sel'));
+  const el=document.getElementById('cof-'+c);if(el)el.classList.add('sel');
+  if(_ctI[1]) renderMx();
+  else { cTab(1,null); }
+}
+
+function renderMx(){
+  let rows=MATRIX.filter(r=>(_cyF==='All'||r.city===_cyF)&&(_coF==='All'||r.courier===_coF));
+  rows.sort((a,b)=>b.rate-a.rate);
+  const med=['🥇','🥈','🥉','4th','5th'];
+  const pc=r=>r>35?'rh':r>20?'rm':r>12?'rb':'rl';
+  const dc=d=>d>4.5?'color:var(--red)':d>3.5?'color:var(--amb)':'color:var(--grn)';
+  document.getElementById('mxBody').innerHTML=rows.map(r=>{
+    const cr=MATRIX.filter(x=>x.city===r.city);
+    const avg=cr.reduce((s,x)=>s+x.rate,0)/cr.length;
+    const diff=(r.rate-avg).toFixed(1);
+    return `<tr>
+      <td>${r.rank<=3?med[r.rank-1]:(r.rank+'th')}</td>
+      <td style="font-size:10px;font-weight:700;color:${CC[r.courier]}">${r.courier}</td>
+      <td><strong>${r.city}</strong></td>
+      <td class="mn">${r.shipments}</td><td class="mn">${r.returns}</td>
+      <td><span class="rp ${pc(r.rate)}">${r.rate}%</span></td>
+      <td class="mn" style="${dc(r.days)}">${r.days}d</td>
+      <td class="mn" style="color:${diff>0?'var(--red)':'var(--grn)'};font-weight:700">${diff>0?'+':''}${diff}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHm(){
+  const cities=['Karachi','Lahore','Islamabad','Faisalabad','Hyderabad','Multan','Peshawar'];
+  const couriers=['Trax','Leopards','TCS','PostEx','M&P'];
+  let h=`<table style="border-collapse:collapse;font-size:10px;width:100%"><thead><tr><th style="text-align:left;padding:3px 6px;font-size:8.5px;color:var(--tx3)">City</th>`;
+  couriers.forEach(c=>h+=`<th style="text-align:center;padding:3px 5px;font-size:9px;color:${CC[c]};font-weight:700">${c}</th>`);
+  h+=`</tr></thead><tbody>`;
+  cities.forEach(city=>{
+    h+=`<tr><td style="padding:3px 6px;font-weight:500;color:var(--tx2)">${city}</td>`;
+    couriers.forEach(courier=>{
+      const cell=MATRIX.find(x=>x.city===city&&x.courier===courier);
+      if(!cell){h+=`<td style="text-align:center;color:var(--tx3)">—</td>`;return;}
+      const r=cell.rate;
+      const bg=r>35?`rgba(217,79,61,${.1+r/200})`:r>20?`rgba(224,140,42,${.08+r/300})`:`rgba(90,143,44,${.07+(50-r)/400})`;
+      const col=r>35?'#9b2c1f':r>20?'#915e10':'#2d5c0e';
+      h+=`<td style="text-align:center;padding:2px 3px"><span class="hc" style="background:${bg};color:${col}">${r}%</span></td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table>`;
+  document.getElementById('hmGrid').innerHTML=h;
+}
+
+function renderRanks(){
+  const cc=n=>`<span style="font-size:10px;font-weight:700;color:${CC[n]}">${n}</span>`;
+  document.getElementById('rkBody').innerHTML=CITY_RANKS.map(r=>`<tr>
+    <td><strong>${r.city}</strong></td>
+    <td>${cc(r.best)}</td><td class="mn" style="color:var(--grn);font-weight:700">${r.br}%</td>
+    <td>${cc(r.worst)}</td><td class="mn" style="color:var(--red);font-weight:700">${r.wr}%</td>
+    <td class="mn" style="color:var(--red);font-weight:700">↑${r.gap}%</td>
+  </tr>`).join('');
+  const perf=[{c:'M&P',r:8.9,d:2.9,o:91,col:'#5a8f2c',ic:'MP'},{c:'PostEx',r:16,d:3.2,o:86,col:'#7c3aed',ic:'PX'},{c:'TCS',r:24,d:3.8,o:79,col:'#2e6fb5',ic:'TC'},{c:'Leopards',r:29,d:4.6,o:68,col:'#e08c2a',ic:'LE'},{c:'Trax',r:35,d:5.1,o:61,col:'#d94f3d',ic:'TR'}];
+  const med=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  const pc=r=>r<15?'rb':r<25?'rm':'rh';
+  document.getElementById('rkList').innerHTML=perf.map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;border:1px solid var(--bd);background:var(--sf2);margin-bottom:6px">
+      <span style="font-size:15px;width:20px">${med[i]}</span>
+      <div style="width:24px;height:24px;border-radius:50%;background:${p.col};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0">${p.ic}</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:12px">${p.c}</div><div style="font-size:9.5px;color:var(--tx3)">${p.r}% returns · ${p.d}d avg · ${p.o}% on-time</div></div>
+      <span class="rp ${pc(p.r)}">${p.r}%</span>
+    </div>`).join('');
+}
+
+function initCourTrends(){
+  const months=['Nov','Dec','Jan','Feb','Mar','Apr'];
+  const td={Trax:[38,36,39,41,37,35],Leopards:[31,30,32,33,31,29],TCS:[26,25,27,28,25,24],PostEx:[18,17,19,20,17,16],'M&P':[10,9,11,10,9,9]};
+  mkC('cTrend',{type:'line',data:{labels:months,datasets:Object.entries(td).map(([k,v])=>({label:k,data:v,borderColor:CC[k],backgroundColor:'transparent',tension:.4,pointRadius:3,borderWidth:2}))},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{callback:v=>v+'%',font:{size:9}},grid:GRID}}}});
+  const cs=['M&P','PostEx','TCS','Leopards','Trax'],cols=cs.map(c=>CC[c]);
+  mkC('cOT',{type:'bar',data:{labels:cs,datasets:[{data:[91,86,79,68,61],backgroundColor:cols,borderRadius:3,borderWidth:0}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{callback:v=>v+'%',font:{size:9}},grid:GRID,min:50}}}});
+  mkC('cDays',{type:'bar',data:{labels:cs,datasets:[{data:[2.9,3.2,3.8,4.6,5.1],backgroundColor:cols,borderRadius:3,borderWidth:0}]},
+    options:{...BASE_OPTS,scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{callback:v=>v+'d',font:{size:9}},grid:GRID,min:2}}}});
+}
+
+// ════ INIT ════
+window.addEventListener('DOMContentLoaded',()=>{
+  renderCusts();
+  renderProds('all');
+  initOverview();
+});
+</script>
+</body>
+</html>
